@@ -128,7 +128,71 @@ Difficulties are assigned as follows — **Easy** means widely known titles, **M
 
 ## Origin
 
-This started as a Python terminal game using `getpass` to hide the movie name. It was rebuilt into a full web app with single player, multiplayer, Firebase sync, difficulty filters, streak tracking, and a proper UI — all as a single `index.html` file.
+This started as a Python terminal game using `getpass` to hide the movie name. It was rebuilt into a full web app with single player, multiplayer, Firebase sync, difficulty filters, streak tracking, and a proper UI — all as a single `index.html` file. Used Claude for this. Here is what is happening :
+
+// Without async/await — messy
+fetch(url).then(response => {
+  response.json().then(data => {
+    console.log(data);
+  });
+});
+
+// With async/await — reads like normal code
+const response = await fetch(url);
+const data = await response.json();
+console.log(data);
+```
+
+Your app uses `async/await` everywhere Firebase is involved — saving rooms, loading rooms, joining rooms.
+
+---
+
+## 7. GitHub Pages — free hosting
+
+Normally, to share a website, you'd need to pay for a server. GitHub Pages is free hosting that serves static files (HTML, CSS, JS) directly from your GitHub repository.
+
+When you push `index.html` to your repo and enable Pages:
+```
+Someone visits your URL
+  → GitHub's servers receive the request
+  → GitHub sends back your index.html
+  → The browser runs everything locally
+```
+
+There's no backend server involved. The entire app runs in the visitor's browser. GitHub just delivers the file.
+
+---
+
+## How it all fits together — the full flow
+```
+1. You open the GitHub Pages URL
+   → GitHub delivers index.html to your browser
+
+2. Your browser runs the JavaScript inside it
+   → Single player works immediately (no internet needed beyond page load)
+
+3. You click "Create Room"
+   → JS generates a random 5-letter code e.g. "BK7XQ"
+   → JS sends room data to Firebase via fetch()
+   → Firebase stores it at /rooms/BK7XQ.json
+   → JS starts polling Firebase every 2.5s waiting for a guest
+
+4. Your friend opens the same URL on their phone
+   → They enter the code "BK7XQ" and click Join
+   → Their browser fetches /rooms/BK7XQ.json from Firebase
+   → Firebase returns the room → they're in
+
+5. You enter a movie and start the round
+   → JS saves updated room to Firebase
+   → Your friend's polling detects the change → their screen updates
+
+6. Your friend guesses a letter
+   → Their JS updates the room locally, saves to Firebase
+   → Your polling detects it → your screen shows the revealed letter
+
+7. Game ends
+   → Final scores are in Firebase
+   → Both screens show the result simultaneously
 
 ---
 
